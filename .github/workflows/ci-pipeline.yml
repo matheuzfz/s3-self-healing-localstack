@@ -1,0 +1,69 @@
+name: S3 Self-Healing CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  integration-test:
+    name: Build & Test LocalStack
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Python Dependencies
+        run: |
+          pip install boto3
+          # Não precisamos de venv aqui porque o container do GitHub é descartável
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Start LocalStack
+        run: |
+          docker-compose up -d
+          echo "Aguardando LocalStack iniciar..."
+          sleep 15 # Espera básica para garantir que o serviço subiu
+
+      - name: Terraform Apply
+        working-directory: ./infrastructure
+        run: |
+          terraform init
+          terraform apply -auto-approve
+
+      - name: Seed Data
+        run: python scripts/seed_buckets.py
+
+      - name: Run Chaos Monkey
+        run: python scripts/chaos_monkey.py
+
+      - name: Verify Restoration
+        run: |
+          echo "Verificando se o arquivo foi restaurado..."
+          sleep 5 # Dá um tempo para a Lambda processar
+          
+          # Script python inline para checar existência
+          python -c "
+          import boto3, sys
+          s3 = boto3.client('s3', endpoint_url='http://localhost:4566', region_name='sa-east-1', aws_access_key_id='test', aws_secret_access_key='test')
+          objs = s3.list_objects(Bucket='app-production-data-v1').get('Contents', [])
+          found = any(o['Key'] == 'arquivo_critico.txt' for o in objs)
+          
+          if found:
+              print('✅ SUCESSO: Arquivo restaurado!')
+              sys.exit(0)
+          else:
+              print('❌ FALHA: Arquivo não encontrado após o caos.')
+              sys.exit(1)
+          "
