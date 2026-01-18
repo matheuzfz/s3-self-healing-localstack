@@ -1,0 +1,1 @@
+Este é um arquivo crítico de produção. Se for deletado, deve voltar!
