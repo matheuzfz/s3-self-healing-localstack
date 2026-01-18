@@ -4,6 +4,7 @@
 ![Python](https://img.shields.io/badge/Python-Boto3-blue?logo=python)
 ![LocalStack](https://img.shields.io/badge/AWS-Emulation-orange)
 ![Docker](https://img.shields.io/badge/Docker-Container-blue?logo=docker)
+![CI Pipeline](https://github.com/matheuzfz/s3-self-healing-localstack/actions/workflows/ci-pipeline.yml/badge.svg)
 
 Este projeto implementa uma arquitetura de referência para **Resiliência e Auto-Recuperação (Self-Healing)** em ambientes de nuvem. A solução monitora continuamente a integridade de dados críticos armazenados em um Bucket S3 e reage automaticamente a eventos de perda de dados (deleção acidental ou maliciosa) sem intervenção humana, restaurando o estado original em segundos.
 
