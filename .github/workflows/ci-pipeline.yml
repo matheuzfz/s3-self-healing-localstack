@@ -32,9 +32,9 @@ jobs:
 
       - name: Start LocalStack
         run: |
-          docker-compose up -d
-          echo "Aguardando LocalStack iniciar..."
-          sleep 15 # Espera básica para garantir que o serviço subiu
+          docker compose up -d
+          echo "⏳ Aguardando LocalStack iniciar..."
+          sleep 15
 
       - name: Terraform Apply
         working-directory: ./infrastructure
